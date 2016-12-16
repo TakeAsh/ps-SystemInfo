@@ -9,6 +9,10 @@ function header($title){
   Write-Output "# $title"
 }
 
+function header2($title){
+  Write-Output "## $title"
+}
+
 # 開始メッセージ
 Write-Output "# System Informations"
 $date = Get-Date
@@ -72,3 +76,12 @@ $testpath |
   ?{$_.SystemComponent -ne 1 -and $_.ParentKeyName -eq $null -and $_.DisplayName -ne $null} |
   sort DisplayName |
   Format-Table -Wrap -AutoSize -Property DisplayName,DisplayVersion,Publisher
+
+# 環境変数
+header "Environment Variables"
+$binpaths = @("Path", "PSModulePath")
+Get-ChildItem env: |
+  ?{-not ($binpaths -contains $_.Name)} |
+  Format-Table -Wrap -AutoSize
+$binpaths |
+  %{header2 $_; [environment]::getenvironmentvariable($_) -split ";"; Write-Output ""}
