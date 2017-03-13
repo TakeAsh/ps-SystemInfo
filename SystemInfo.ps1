@@ -21,12 +21,28 @@ Write-Output ""
 
 # システム
 header "System"
+$physicalMemory = @{Name="PhysicalMemory"; Expression={[math]::round($_.TotalPhysicalMemory / 1GB, 3)}}
 Get-WmiObject Win32_ComputerSystem |
-  Format-List -Property Name,PSComputerName,Manufacturer,Model,TotalPhysicalMemory,PartOfDomain,Domain,DomainRole,Workgroup,PrimaryOwnerName
+  Format-List -Property Name,PSComputerName,Manufacturer,Model,$physicalMemory,PartOfDomain,Domain,DomainRole,Workgroup,PrimaryOwnerName
 
 # OSバージョン
 header "OS Version"
 [Environment]::OSVersion | Format-List
+
+# 物理メモリ
+header "Physical Memory"
+$formfactors = "Unknown", "Other", "SIP", "DIP", "ZIP", "SOJ", "Proprietary",
+  "SIMM", "DIMM", "TSOP", "PGA", "RIMM", "SODIMM", "SRIMM", "SMD", "SSMP",
+  "QFP", "TQFP", "SOIC", "LCC", "PLCC", "BGA", "FPBGA", "LGA"
+$memorytypes = "Unknown", "Other", "DRAM", "Synchronous DRAM", "Cache DRAM",
+  "EDO", "EDRAM", "VRAM", "SRAM", "RAM", "ROM", "Flash", "EEPROM", "FEPROM",
+  "EPROM", "CDRAM", "3DRAM", "SDRAM", "SGRAM", "RDRAM", "DDR", "DDR2", 
+  "DDR2 FB-DIMM", "Unknown", "DDR3", "FBD2"
+$memorySize = @{Name='Size(GB)'; Expression={$_.Capacity/1GB}}
+$memoryFormFactor = @{Name="Form Factor"; Expression={$formfactors[$_.FormFactor]}}
+$memoryTypeName = @{Name="Memory Type"; Expression={$memorytypes[$_.MemoryType]}}
+Get-WmiObject Win32_PhysicalMemory |
+  Format-Table -AutoSize BankLabel, $memorySize, $memoryFormFactor, $memoryTypeName, Speed
 
 # ディスク構成
 header "Disk Drives"
