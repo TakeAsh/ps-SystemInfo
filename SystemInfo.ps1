@@ -39,7 +39,7 @@ $memorytypes = "Unknown", "Other", "DRAM", "Synchronous DRAM", "Cache DRAM",
   "EDO", "EDRAM", "VRAM", "SRAM", "RAM", "ROM", "Flash", "EEPROM", "FEPROM",
   "EPROM", "CDRAM", "3DRAM", "SDRAM", "SGRAM", "RDRAM", "DDR", "DDR2", 
   "DDR2 FB-DIMM", "Unknown", "DDR3", "FBD2"
-$memorySize = @{Name='Size(GB)'; Expression={$_.Capacity/1GB}}
+$memorySize = @{Name='Size(GB)'; Expression={$_.Capacity / 1GB}}
 $memoryFormFactor = @{Name="Form Factor"; Expression={$formfactors[$_.FormFactor]}}
 $memoryTypeName = @{Name="Memory Type"; Expression={$memorytypes[$_.MemoryType]}}
 Get-WmiObject Win32_PhysicalMemory |
@@ -47,15 +47,16 @@ Get-WmiObject Win32_PhysicalMemory |
 
 # ディスク構成
 header "Disk Drives"
+$diskSize = @{Name='Size(GB)'; Expression={[math]::round($_.Size / 1E9, 0)}}
 Get-WmiObject Win32_DiskDrive |
-  sort DeviceID |
-  Format-Table -Wrap -AutoSize -Property DeviceID,Model,Size,Partitions,InterfaceType
+  Sort-Object DeviceID |
+  Format-Table -Wrap -AutoSize -Property DeviceID,Model,$diskSize,Partitions,InterfaceType
 
 # ネットワーク設定
 header "Networks"
 Get-WmiObject Win32_NetworkAdapterConfiguration |
   ?{$_.IPEnabled -eq $TRUE} |
-  sort Description |
+  Sort-Object Description |
   Format-List -Property Description,ServiceName,DHCPEnabled,IPAddress,IPSubnet,DefaultIPGateway,MACAddress,DNSDomain
 
 # 役割情報、機能情報
@@ -64,7 +65,7 @@ try {
   header "Roles and Features"
   Get-WindowsFeature |
     ?{$_.InstallState -eq [Microsoft.Windows.ServerManager.Commands.InstallState]::Installed} |
-    sort Name | 
+    Sort-Object Name | 
     Format-Table -Wrap -AutoSize -Property Name,DisplayName
 } catch [Exception] {
   header "ServerManager: Not Installed"
@@ -74,7 +75,7 @@ try {
 # 適用済みセキュリティパッチ
 header "Applied Patches"
 Get-WmiObject Win32_QuickFixEngineering |
-  sort -Descending HotFixID |
+  Sort-Object -Descending HotFixID |
   Format-Table -Wrap -AutoSize -Property HotFixID,Description,InstalledOn
 
 # インストール済みアプリケーション
@@ -91,7 +92,7 @@ $testpath |
   %{Get-ChildItem -Path $_} |
   %{Get-ItemProperty $_.PsPath} |
   ?{$_.SystemComponent -ne 1 -and $_.ParentKeyName -eq $null -and $_.DisplayName -ne $null} |
-  sort DisplayName |
+  Sort-Object DisplayName |
   Format-Table -Wrap -AutoSize -Property DisplayName,DisplayVersion,Publisher
 
 # 環境変数
