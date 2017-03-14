@@ -2,6 +2,7 @@
 # [PowerShellでOSの基本情報を取得する | Windowsインフラ管理者への道](http://ebi.dyndns.biz/windowsadmin/2012/01/15/powershell%E3%81%A7os%E3%81%AE%E5%9F%BA%E6%9C%AC%E6%83%85%E5%A0%B1%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B/)
 # [PowerShell の コマンドレット例外を取得する - tech.guitarrapc.cóm](http://tech.guitarrapc.com/entry/2013/07/22/000738)
 # [インストール済みのWindows Serverの役割と機能を一覧するPowerShellコマンド - YOMON8.NET](http://yomon.hatenablog.com/entry/2014/11/11/170524)
+# [PowerShell: ◆メモリーサイズを調べる](http://mtgpowershell.blogspot.jp/2010/12/blog-post_13.html)
 
 $ErrorActionPreference = "Stop"
 
