@@ -1,4 +1,5 @@
 ﻿# システム情報の表示
+# [Computer System Hardware Classes (Windows)](https://msdn.microsoft.com/en-us/library/aa389273.aspx)
 # [PowerShellでOSの基本情報を取得する | Windowsインフラ管理者への道](http://ebi.dyndns.biz/windowsadmin/2012/01/15/powershell%E3%81%A7os%E3%81%AE%E5%9F%BA%E6%9C%AC%E6%83%85%E5%A0%B1%E3%82%92%E5%8F%96%E5%BE%97%E3%81%99%E3%82%8B/)
 # [PowerShell の コマンドレット例外を取得する - tech.guitarrapc.cóm](http://tech.guitarrapc.com/entry/2013/07/22/000738)
 # [インストール済みのWindows Serverの役割と機能を一覧するPowerShellコマンド - YOMON8.NET](http://yomon.hatenablog.com/entry/2014/11/11/170524)
@@ -29,6 +30,13 @@ Get-WmiObject Win32_ComputerSystem |
 # OSバージョン
 header "OS Version"
 [Environment]::OSVersion | Format-List
+
+# CPU
+header "Processor"
+$architectures = "x86", "MIPS", "Alpha", "PowerPC", "Unknown", "ARM", "ia64", "Unknown", "Unknown", "x64"
+$processorArchitecture = @{Name='Architecture'; Expression={$architectures[$_.Architecture]}}
+Get-WmiObject -Class Win32_Processor |
+  Format-List -Property DeviceID,Role,Name,Manufacturer,Description,SocketDesignation,$processorArchitecture,NumberOfCores,NumberOfLogicalProcessors,ThreadCount,VirtualizationFirmwareEnabled,VMMonitorModeExtensions,CurrentClockSpeed,MaxClockSpeed,ExtClock,Status
 
 # 物理メモリ
 header "Physical Memory"
