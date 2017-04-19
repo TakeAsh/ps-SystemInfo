@@ -1,7 +1,7 @@
-# ps-SystemInfo
+﻿# SystemInfo.ps1
 show system informations
 
-# Usage sample
+## Usage sample
 ```
 > .\SystemInfo.ps1
 # System Informations
@@ -40,7 +40,7 @@ Description      : Intel(R) PRO/1000 MT Network Connection
 ServiceName      : E1G60
 DHCPEnabled      : False
 IPAddress        : {192.168.0.206}
-IPSubnet         : {255.255.255.0, 64}
+IPSubnet         : {255.255.255.0}
 DefaultIPGateway : {192.168.0.1}
 MACAddress       : xx:xx:xx:xx:xx:xx
 DNSDomain        : localdomain
@@ -161,4 +161,35 @@ C:\Program Files (x86)\Microsoft VS Code\bin
 C:\Users\User01\Documents\WindowsPowerShell\Modules
 C:\Program Files\WindowsPowerShell\Modules
 C:\Windows\system32\WindowsPowerShell\v1.0\Modules
+```
+
+# ChangeNetCategory.ps1
+show the network profiles, and change its NetworkCategory (Public/Private).
+
+## Usage sample
+```
+> .\ChangeNetCategory.ps1
+
+Index            : 0
+Name             : Unidentified Network
+NetworkCategory  : Public
+Description      : TAP-Windows Adapter V9
+DHCPEnabled      : True
+IPAddress        : {10.8.0.6}
+IPSubnet         : {255.255.255.252}
+DefaultIPGateway :
+MACAddress       : xx:xx:xx:xx:xx:xx
+
+Index            : 1
+Name             : Network
+NetworkCategory  : Private
+Description      : Intel(R) PRO/1000 MT Network Connection
+DHCPEnabled      : False
+IPAddress        : {192.168.0.206}
+IPSubnet         : {255.255.255.0}
+DefaultIPGateway : {192.168.0.1}
+MACAddress       : xx:xx:xx:xx:xx:xx
+
+Input index: 0
+'Unidentified Network' is changed to 'Private'.
 ```
