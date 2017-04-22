@@ -2,13 +2,13 @@
 # Show the list of networks, then input the index of the network that you want to change its NetworkCategory.
 # You have to run this script as an administrator.
 
-$adptors = @{}
-Get-WmiObject Win32_NetworkAdapterConfiguration | % {$adptors[$_.InterfaceIndex] = $_}
-$networks = @()
-$index = 0
-Get-NetConnectionProfile | % {
-  $adaptor = $adptors[$_.InterfaceIndex]
-  $networks += [PSCustomObject] @{
+Get-WmiObject Win32_NetworkAdapterConfiguration |
+  % {$adptors = @{}} {$adptors[$_.InterfaceIndex] = $_}
+$networks = Get-NetConnectionProfile |
+  Sort-Object Name |
+  % {$index = 0} {
+  $adaptor = $adptors[$_.InterfaceIndex];
+  [PSCustomObject] @{
     Index = $index++;
     Profile = $_;
     Name = $_.Name;
@@ -19,10 +19,11 @@ Get-NetConnectionProfile | % {
     IPSubnet = $adaptor.IPSubnet;
     DefaultIPGateway = $adaptor.DefaultIPGateway;
     MACAddress = $adaptor.MACAddress;
+    DNSDomain = $adaptor.DNSDomain;
   }
 }
 $networks |
-  Format-List -Property Index, Name, NetworkCategory, Description, DHCPEnabled, IPAddress, IPSubnet, DefaultIPGateway, MACAddress
+  Format-List -Property Index, Name, NetworkCategory, Description, DHCPEnabled, IPAddress, IPSubnet, DefaultIPGateway, MACAddress, DNSDomain
 
 $in = Read-Host "Input index"
 $profIndex = 0
