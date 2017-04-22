@@ -7,11 +7,11 @@
 
 $ErrorActionPreference = "Stop"
 
-function header($title){
+function header($title) {
   Write-Output "# $title"
 }
 
-function header2($title){
+function header2($title) {
   Write-Output "## $title"
 }
 
@@ -23,9 +23,9 @@ Write-Output ""
 
 # システム
 header "System"
-$physicalMemory = @{Name="PhysicalMemory"; Expression={[math]::round($_.TotalPhysicalMemory / 1GB, 3)}}
+$physicalMemory = @{Name = "PhysicalMemory"; Expression = {[math]::round($_.TotalPhysicalMemory / 1GB, 3)}}
 Get-WmiObject Win32_ComputerSystem |
-  Format-List -Property Name,PSComputerName,Manufacturer,Model,$physicalMemory,PartOfDomain,Domain,DomainRole,Workgroup,PrimaryOwnerName
+  Format-List -Property Name, PSComputerName, Manufacturer, Model, $physicalMemory, PartOfDomain, Domain, DomainRole, Workgroup, PrimaryOwnerName
 
 # OSバージョン
 header "OS Version"
@@ -34,47 +34,60 @@ header "OS Version"
 # CPU
 header "Processor"
 $architectures = "x86", "MIPS", "Alpha", "PowerPC", "Unknown", "ARM", "ia64", "Unknown", "Unknown", "x64"
-$processorArchitecture = @{Name='Architecture'; Expression={$architectures[$_.Architecture]}}
+$processorArchitecture = @{Name = 'Architecture'; Expression = {$architectures[$_.Architecture]}}
 Get-WmiObject -Class Win32_Processor |
-  Format-List -Property DeviceID,Role,Name,Manufacturer,Description,SocketDesignation,$processorArchitecture,NumberOfCores,NumberOfLogicalProcessors,ThreadCount,VirtualizationFirmwareEnabled,VMMonitorModeExtensions,CurrentClockSpeed,MaxClockSpeed,ExtClock,Status
+  Format-List -Property DeviceID, Role, Name, Manufacturer, Description, SocketDesignation, $processorArchitecture, NumberOfCores, NumberOfLogicalProcessors, ThreadCount, VirtualizationFirmwareEnabled, VMMonitorModeExtensions, CurrentClockSpeed, MaxClockSpeed, ExtClock, Status
 
 # 物理メモリ
 header "Physical Memory"
 $formfactors = "Unknown", "Other", "SIP", "DIP", "ZIP", "SOJ", "Proprietary",
-  "SIMM", "DIMM", "TSOP", "PGA", "RIMM", "SODIMM", "SRIMM", "SMD", "SSMP",
-  "QFP", "TQFP", "SOIC", "LCC", "PLCC", "BGA", "FPBGA", "LGA"
+"SIMM", "DIMM", "TSOP", "PGA", "RIMM", "SODIMM", "SRIMM", "SMD", "SSMP",
+"QFP", "TQFP", "SOIC", "LCC", "PLCC", "BGA", "FPBGA", "LGA"
 $memorytypes = "Unknown", "Other", "DRAM", "Synchronous DRAM", "Cache DRAM",
-  "EDO", "EDRAM", "VRAM", "SRAM", "RAM", "ROM", "Flash", "EEPROM", "FEPROM",
-  "EPROM", "CDRAM", "3DRAM", "SDRAM", "SGRAM", "RDRAM", "DDR", "DDR2", 
-  "DDR2 FB-DIMM", "Unknown", "DDR3", "FBD2"
-$memorySize = @{Name='Size(GB)'; Expression={$_.Capacity / 1GB}}
-$memoryFormFactor = @{Name="Form Factor"; Expression={$formfactors[$_.FormFactor]}}
-$memoryTypeName = @{Name="Memory Type"; Expression={$memorytypes[$_.MemoryType]}}
+"EDO", "EDRAM", "VRAM", "SRAM", "RAM", "ROM", "Flash", "EEPROM", "FEPROM",
+"EPROM", "CDRAM", "3DRAM", "SDRAM", "SGRAM", "RDRAM", "DDR", "DDR2", 
+"DDR2 FB-DIMM", "Unknown", "DDR3", "FBD2"
+$memorySize = @{Name = 'Size(GB)'; Expression = {$_.Capacity / 1GB}}
+$memoryFormFactor = @{Name = "Form Factor"; Expression = {$formfactors[$_.FormFactor]}}
+$memoryTypeName = @{Name = "Memory Type"; Expression = {$memorytypes[$_.MemoryType]}}
 Get-WmiObject Win32_PhysicalMemory |
   Format-Table -AutoSize BankLabel, $memorySize, $memoryFormFactor, $memoryTypeName, Speed
 
 # ディスク構成
 header "Disk Drives"
-$diskSize = @{Name='Size(GB)'; Expression={[math]::round($_.Size / 1E9, 0)}}
+$diskSize = @{Name = 'Size(GB)'; Expression = {[math]::round($_.Size / 1E9, 0)}}
 Get-WmiObject Win32_DiskDrive |
   Sort-Object DeviceID |
-  Format-Table -Wrap -AutoSize -Property DeviceID,Model,$diskSize,Partitions,InterfaceType
+  Format-Table -Wrap -AutoSize -Property DeviceID, Model, $diskSize, Partitions, InterfaceType
 
 # ネットワーク設定
 header "Networks"
 Get-WmiObject Win32_NetworkAdapterConfiguration |
-  ?{$_.IPEnabled -eq $TRUE} |
-  Sort-Object Description |
-  Format-List -Property Description,ServiceName,DHCPEnabled,IPAddress,IPSubnet,DefaultIPGateway,MACAddress,DNSDomain
+  % {$networkAdptors = @{}} {$networkAdptors[$_.InterfaceIndex] = $_}
+Get-NetConnectionProfile |
+  Sort-Object Name | % {
+  $adaptor = $networkAdptors[$_.InterfaceIndex];
+  [PSCustomObject] @{
+    Name = $_.Name;
+    NetworkCategory = $_.NetworkCategory;
+    Description = $adaptor.Description;
+    DHCPEnabled = $adaptor.DHCPEnabled;
+    IPAddress = $adaptor.IPAddress;
+    IPSubnet = $adaptor.IPSubnet;
+    DefaultIPGateway = $adaptor.DefaultIPGateway;
+    MACAddress = $adaptor.MACAddress;
+    DNSDomain = $adaptor.DNSDomain;
+  }
+} | Format-List -Property Index, Name, NetworkCategory, Description, DHCPEnabled, IPAddress, IPSubnet, DefaultIPGateway, MACAddress, DNSDomain
 
 # 役割情報、機能情報
 try {
   Import-Module ServerManager
   header "Roles and Features"
   Get-WindowsFeature |
-    ?{$_.InstallState -eq [Microsoft.Windows.ServerManager.Commands.InstallState]::Installed} |
+    ? {$_.InstallState -eq [Microsoft.Windows.ServerManager.Commands.InstallState]::Installed} |
     Sort-Object Name | 
-    Format-Table -Wrap -AutoSize -Property Name,DisplayName
+    Format-Table -Wrap -AutoSize -Property Name, DisplayName
 } catch [Exception] {
   header "ServerManager: Not Installed"
   Write-Output ""
@@ -84,30 +97,30 @@ try {
 header "Applied Patches"
 Get-WmiObject Win32_QuickFixEngineering |
   Sort-Object -Descending HotFixID |
-  Format-Table -Wrap -AutoSize -Property HotFixID,Description,InstalledOn
+  Format-Table -Wrap -AutoSize -Property HotFixID, Description, InstalledOn
 
 # インストール済みアプリケーション
 header "Installed Applications"
 $path = "\Microsoft\Windows\CurrentVersion\Uninstall"
 $testpath = @()
-foreach($regTop in @("HKLM:", "HKCU:")){
-  foreach($regPlatform in @("", "\Wow6432Node")){
+foreach ($regTop in @("HKLM:", "HKCU:")) {
+  foreach ($regPlatform in @("", "\Wow6432Node")) {
     $testpath += $regTop + "\SOFTWARE" + $regPlatform + $path 
   }
 }
 $testpath |
-  ?{Test-Path $_} |
-  %{Get-ChildItem -Path $_} |
-  %{Get-ItemProperty $_.PsPath} |
-  ?{$_.SystemComponent -ne 1 -and $_.ParentKeyName -eq $null -and $_.DisplayName -ne $null} |
+  ? {Test-Path $_} |
+  % {Get-ChildItem -Path $_} |
+  % {Get-ItemProperty $_.PsPath} |
+  ? {$_.SystemComponent -ne 1 -and $_.ParentKeyName -eq $null -and $_.DisplayName -ne $null} |
   Sort-Object DisplayName |
-  Format-Table -Wrap -AutoSize -Property DisplayName,DisplayVersion,Publisher
+  Format-Table -Wrap -AutoSize -Property DisplayName, DisplayVersion, Publisher
 
 # 環境変数
 header "Environment Variables"
 $binpaths = @("Path", "PSModulePath")
 Get-ChildItem env: |
-  ?{-not ($binpaths -contains $_.Name)} |
+  ? {-not ($binpaths -contains $_.Name)} |
   Format-Table -Wrap -AutoSize
 $binpaths |
-  %{header2 $_; [environment]::getenvironmentvariable($_) -split ";"; Write-Output ""}
+  % {header2 $_; [environment]::getenvironmentvariable($_) -split ";"; Write-Output ""}
