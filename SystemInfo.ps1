@@ -80,6 +80,11 @@ Get-NetConnectionProfile |
   }
 } | Format-List -Property Index, Name, NetworkCategory, Description, DHCPEnabled, IPAddress, IPSubnet, DefaultIPGateway, MACAddress, DNSDomain
 
+# 静的ルーティング
+header "Static routes"
+Get-WmiObject -class Win32_IP4PersistedRouteTable |
+  Format-Table -AutoSize -Property Destination, Mask, NextHop, Metric1
+
 # 役割情報、機能情報
 try {
   Import-Module ServerManager
