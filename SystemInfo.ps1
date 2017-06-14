@@ -63,20 +63,21 @@ Get-WmiObject Win32_DiskDrive |
 # ネットワーク設定
 header "Networks"
 Get-WmiObject Win32_NetworkAdapterConfiguration |
+  ? {$_.InterfaceIndex -ne $null} |
   % {$networkAdptors = @{}} {$networkAdptors[$_.InterfaceIndex] = $_}
 Get-NetConnectionProfile |
   Sort-Object Name | % {
   $adaptor = $networkAdptors[$_.InterfaceIndex];
   [PSCustomObject] @{
-    Name = $_.Name;
-    NetworkCategory = $_.NetworkCategory;
-    Description = $adaptor.Description;
-    DHCPEnabled = $adaptor.DHCPEnabled;
-    IPAddress = $adaptor.IPAddress;
-    IPSubnet = $adaptor.IPSubnet;
+    Name             = $_.Name;
+    NetworkCategory  = $_.NetworkCategory;
+    Description      = $adaptor.Description;
+    DHCPEnabled      = $adaptor.DHCPEnabled;
+    IPAddress        = $adaptor.IPAddress;
+    IPSubnet         = $adaptor.IPSubnet;
     DefaultIPGateway = $adaptor.DefaultIPGateway;
-    MACAddress = $adaptor.MACAddress;
-    DNSDomain = $adaptor.DNSDomain;
+    MACAddress       = $adaptor.MACAddress;
+    DNSDomain        = $adaptor.DNSDomain;
   }
 } | Format-List -Property Index, Name, NetworkCategory, Description, DHCPEnabled, IPAddress, IPSubnet, DefaultIPGateway, MACAddress, DNSDomain
 
