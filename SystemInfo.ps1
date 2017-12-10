@@ -86,6 +86,21 @@ header "Static routes"
 Get-WmiObject -class Win32_IP4PersistedRouteTable |
   Format-Table -AutoSize -Property Destination, Mask, NextHop, Metric1
 
+# NTP Server
+header "NTP Server"
+$ntpServersPath = "HKLM:/SOFTWARE/Microsoft/Windows/CurrentVersion/DateTime/Servers"
+$w32timeNtpClientPath = "HKLM:/SYSTEM/CurrentControlSet/services/W32Time/TimeProviders/NtpClient"
+$ntpServers = Get-Item -LiteralPath $ntpServersPath
+$selectedNtpServer = $ntpServers.GetValue("")
+$ntpServers.GetValueNames() |
+  ? {$_ -ne ""} |
+  Sort-Object |
+  % {$(if ($_ -eq $selectedNtpServer) {"*"} else {" "}) + $_ + ": " + $ntpServers.GetValue($_)}
+$hourToSec = 60.0 * 60
+$ntpInterval = (Get-ItemProperty -LiteralPath $w32timeNtpClientPath).SpecialPollInterval / $hourToSec
+Write-Output "Interval (hours): ${ntpInterval}" 
+Write-Output ""
+
 # 役割情報、機能情報
 try {
   Import-Module ServerManager
@@ -94,7 +109,8 @@ try {
     ? {$_.InstallState -eq [Microsoft.Windows.ServerManager.Commands.InstallState]::Installed} |
     Sort-Object Name | 
     Format-Table -Wrap -AutoSize -Property Name, DisplayName
-} catch [Exception] {
+}
+catch [Exception] {
   header "ServerManager: Not Installed"
   Write-Output ""
 }
