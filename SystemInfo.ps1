@@ -60,6 +60,43 @@ Get-WmiObject Win32_DiskDrive |
   Sort-Object DeviceID |
   Format-Table -Wrap -AutoSize -Property DeviceID, Model, $diskSize, Partitions, InterfaceType
 
+# ディスクパーティション / 論理ドライブ
+header "Partition / Logical Drive"
+$diskSize = @{Name = 'Size(GB)'; Expression = {[math]::round($_.Size / 1E9, 3)}}
+$partitions = @{}
+Get-WmiObject -Class Win32_DiskPartition | % {
+  $_.DeviceID -match 'Disk\s#(?<disk>\d+),\s*Partition\s#(?<partition>\d+)' | Out-Null
+  $disk = $Matches.disk
+  $partition = $Matches.partition
+  if (!$partitions[$disk]) {
+    $partitions[$disk] = @{}
+  }
+  $partitions[$disk][$partition] = @{
+    Size  = $_.Size
+    Drive = '-';
+  }
+}
+Get-WmiObject Win32_LogicalDiskToPartition | % {
+  $_.Antecedent -match '"Disk\s#(?<disk>\d+),\s*Partition\s#(?<partition>\d+)"$' | Out-Null
+  $disk = $Matches.disk
+  $partition = $Matches.partition
+  $_.Dependent -match '"(?<drive>[^"]+)"$' | Out-Null
+  $partitions[$disk][$partition].Drive = $Matches.drive
+}
+$partitions.GetEnumerator() |
+  % {
+  $disk = $_.Key
+  $_.Value.GetEnumerator() |
+    % { 
+    [PSCustomObject] @{
+      Disk      = $disk;
+      Partition = $_.Key;
+      Size      = $_.Value.Size;
+      Drive     = $_.Value.Drive;
+    }
+  }
+} | Sort-Object Disk, Partition | Format-Table -AutoSize Disk, Partition, $diskSize, Drive
+
 # ネットワーク設定
 header "Networks"
 Get-WmiObject Win32_NetworkAdapterConfiguration |
