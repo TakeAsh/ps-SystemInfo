@@ -20,7 +20,7 @@
 Param(
   [ValidateSet('', 0, 1, '?', 'h', 'help')][string]$Value
 )
-if (@('?', 'h', 'help' ).Contains($Value)) {
+if (@('?', 'h', 'help').Contains($Value)) {
   Get-Help $PSCommandPath
   Exit
 }
