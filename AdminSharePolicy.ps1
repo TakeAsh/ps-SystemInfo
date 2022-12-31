@@ -5,13 +5,16 @@
        0: Set policy 'Disabled'
        1: Set policy 'Enabled'
   .DESCRIPTION
-    Get/Set Administrative share policy
+    Get/Set administrative share policy
+    Requires admin privilege
   .PARAMETER Value
     '': Get current policy
      0: Set policy 'Disabled'
      1: Set policy 'Enabled'
 #>
+
 #Requires -RunAsAdministrator
+
 Param(
   [ValidateSet('', 0, 1)][string]$Value
 )
